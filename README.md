@@ -38,3 +38,6 @@ Done!
 2. Log in
 3. ???
 4. profit
+
+## Legal Notice
+This application is an open source project written in Python, which uses the API of the Lidl Plus application, owned by Lidl Stiftung & Co. KG. The application was created solely for educational purposes and is not affiliated with Lidl Stiftung & Co. KG. The creator of the application is not affiliated with Lidl Stiftung & Co. KG. in any way and does not derive any financial benefits from this project. All trademarks, trade names, and logos are the property of their respective owners. Users use the application at their own risk.
