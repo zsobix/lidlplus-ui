@@ -1,0 +1,3 @@
+pyjwkest
+requests
+qrcode
