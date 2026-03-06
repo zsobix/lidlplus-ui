@@ -1,0 +1,38 @@
+.button {
+    border-radius: 15px;
+    margin: 15px;
+}
+.picture {
+    border-radius: 15px;
+    margin: 5px;
+}
+.login-boxes {
+    margin: 25px;
+}
+.text {
+    margin: 5px;
+    text-align: center;
+}
+.home {
+    margin-left: 1px;
+    margin-right: 1px;
+}
+.schedule {
+    margin: 5px;
+}
+.settings {
+    margin: 5px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+.buttontext {
+    margin-right: 15px;
+    margin-left: auto;
+    align-items: flex-end;
+    float: right;
+    display: flex;
+    justify-content: flex-end;
+}
+.description {
+    text-align: center;
+}

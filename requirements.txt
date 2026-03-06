@@ -1,0 +1,4 @@
+pyjwkest
+requests
+playwright
+qrcode
