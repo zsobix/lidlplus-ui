@@ -9,14 +9,13 @@ Install Python 3 including pip
 
 Clone this repo `git clone --recurse-submodules --remote-submodules https://github.com/Zsobix/lidlplus-ui`
 
+### Mac and Linux:
 Install all requirements `pip install -r requirements.txt`
 
 Run `playwright install`
 
 Install all dependencies that playwright requires
 
-
-### Mac and Linux:
 Install PyGObject, GTK, and libadwaita packages for your distro<sup><a href="https://pygobject.gnome.org/getting_started.html">[1]</a></sup>
 
 Done!
@@ -25,6 +24,8 @@ Done!
 Follow the "Windows" part in <a href="https://pygobject.gnome.org/getting_started.html">this</a> guide.
 
 Execute `pacman -Sy mingw-w64-ucrt-x86_64-libadwaita`
+
+Install all requirements `pip install -r msys-requirements.txt`
 
 Since playwright doesn't work in Msys, you need to first run the `getrefreshtoken.py` file to get the refresh token.
 
