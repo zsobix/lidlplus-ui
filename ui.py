@@ -300,11 +300,17 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def login(self, action):
         if not os.path.exists("login.json"):
-            self.lidl = api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper())
-            self.lidl.login(email=self.usernameentry.get_text(), password=self.passwordentry.get_text())
-            self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
-            with open("login.json", "w") as login:
-                login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
+            if self.refreshtokenentry.get_text() != "":
+                self.lidl = api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=self.refreshtokenentry.get_text())
+                self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
+                with open("login.json", "w") as login:
+                    login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
+            else:
+                self.lidl = api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper())
+                self.lidl.login(email=self.usernameentry.get_text(), password=self.passwordentry.get_text())
+                self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
+                with open("login.json", "w") as login:
+                    login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
         else:
             with open("login.json", "r") as login:
                 jason = json.loads(login.read())
@@ -316,15 +322,17 @@ class MainWindow(Gtk.ApplicationWindow):
         #print(self.lidl.offers("HU0358"))
         self.home()
     def home(self, action="", param=""):
-        self.centerbox = Gtk.CenterBox()
-        self.set_child(self.centerbox)
         self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.centerbox.set_center_widget(self.box1)
+        self.set_child(self.box1)
         self.box1.set_css_classes(["home"])
         self.label = Gtk.Label()
         self.label.set_css_classes(["text"])
         self.box1.append(self.label)
         if self.logged_in:
+            self.centerbox = Gtk.CenterBox()
+            self.set_child(self.centerbox)
+            self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.centerbox.set_center_widget(self.box1)
             if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
                 self.label.set_markup('<span size="larger" weight="bold">Home</span>')
             else:
@@ -480,6 +488,17 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.countrylabel = Gtk.Label()
                 self.countrylabel.set_markup('<span size="medium">Country</span>')
                 self.countrybox.append(self.countrylabel)
+
+                self.refreshtokenbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                self.countrybox.append(self.refreshtokenbox)
+                self.refreshtokenbox.set_css_classes(["login-boxes"])
+
+                self.refreshtokenentry = Gtk.Entry()
+                self.refreshtokenbox.append(self.refreshtokenentry)
+
+                self.refreshtokenlabel = Gtk.Label()
+                self.refreshtokenlabel.set_markup('<span size="medium">Refresh Token (optional)</span>')
+                self.refreshtokenbox.append(self.refreshtokenlabel)
 
                 self.buttonbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                 self.countrybox.append(self.buttonbox)
