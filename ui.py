@@ -422,7 +422,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
             logoutbutton = Gtk.Button(label="logout")
             logoutbutton.set_css_classes(['button'])
-            logoutbutton.connect("clicked", self.settings)
+            logoutbutton.connect("clicked", self.logout)
             logoutbox.append(logoutbutton)
 
             logoutlabel = Gtk.Label()
