@@ -43,7 +43,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "lidl-plus = lidlplus_ui.__main__:main",
+            "lidlplus-ui = lidlplus_ui.__main__:main",
         ]
     },
 )

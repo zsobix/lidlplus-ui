@@ -1,4 +1,4 @@
-from ui import MyApp
+from .ui import MyApp
 import argparse
 from lidlplus_api import LidlPlusApi
     
