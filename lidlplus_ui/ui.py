@@ -1,7 +1,6 @@
 import sys
 import gi
-sys.path.append('./lidlplus-api/')
-import api
+import lidlplus_api
 import requests
 import os
 import json
@@ -9,17 +8,20 @@ import time
 import qrcode
 import webbrowser
 import datetime
+
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gdk, Adw, Gio, GdkPixbuf
 
+# Import css
 css_provider = Gtk.CssProvider()
 css_provider.load_from_path('style.css')
 Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Things will go here
+        # Initalize
         self.logged_in = False
         self.store = ""
 
@@ -29,7 +31,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_titlebar(self.titlebar)
         
         self.home()
-
+        
+        # Setup hamburger menu
         action = Gio.SimpleAction.new("coupons", None)
         action.connect("activate", self.coupons)
         home = Gio.SimpleAction.new("home", None)
@@ -42,6 +45,7 @@ class MainWindow(Gtk.ApplicationWindow):
         settings.connect("activate", self.settings)
         logout = Gio.SimpleAction.new("logout", None)
         logout.connect("activate", self.logout)
+
         self.add_action(action)
         self.add_action(home)
         self.add_action(offers)
@@ -50,6 +54,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.add_action(logout)
 
         menu = Gio.Menu.new()
+
         menu.append("Home", "win.home")
         menu.append("Coupons", "win.coupons")
         menu.append("Offers", "win.offers")
@@ -72,6 +77,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.titlebar.pack_start(self.homebutton)
 
+        # Create a button for redeeming the purchase lottery
         self.purchaseLotterybutton = Gtk.Button()
         self.purchaseLotterybutton.connect("clicked", self.purchaseLottery)
         #self.purchaseLotterybutton.set_icon_name("package-x-generic-symbolic")
@@ -79,17 +85,20 @@ class MainWindow(Gtk.ApplicationWindow):
         self.titlebar.pack_start(self.purchaseLotterybutton)
 
     def logout(self, action="", param=""):
-        os.remove("login.json")
-        self.logged_in = False
-        self.home()
+        # Logout procedure
+        if self.logged_in:
+            os.remove("login.json")
+            self.logged_in = False
+            self.home()
+
     def coupons(self, action="", param=""):
         if self.logged_in:
             scrollwin = Gtk.ScrolledWindow.new()
             self.set_child(scrollwin)
-            self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            scrollwin.set_child(self.box1)
+            self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            scrollwin.set_child(self.displaybox)
             self.label = Gtk.Label()
-            self.box1.append(self.label)
+            self.displaybox.append(self.label)
             activecoupons = self.lidl.activecoupons_count(self.store)["activeCount"]
             self.label.set_markup(f'<span size="larger" weight="bold">Coupons\nActive coupons count: {activecoupons}</span>')
             self.label.set_css_classes(["text"])
@@ -97,12 +106,12 @@ class MainWindow(Gtk.ApplicationWindow):
             for coupon in coupons:
                 activate = Gtk.Button() #label="Activate/Deactivate"
                 activate.set_css_classes(['button'])
-                self.box1.append(activate)
+                self.displaybox.append(activate)
                 activate.connect("clicked", self.details)
                 centerbox = Gtk.CenterBox()
                 activate.set_child(centerbox)
                 box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-                #self.box1.append(box)
+                #self.displaybox.append(box)
                 centerbox.set_start_widget(box)
                 #img = Gio.File.new_for_uri(coupon["image"]["url"])
                 #img2 = GdkPixbuf.Pixbuf.new_from_stream(img.read(cancellable=None))
@@ -151,33 +160,33 @@ class MainWindow(Gtk.ApplicationWindow):
                 ##set_id.set_visible(False)
                 #activate.set_child(set_id)
                 #activate.connect("clicked", self.toggle)
+
     def details(self, action):
         box = action.get_child().get_start_widget()
         box2 = box.get_first_child().get_next_sibling()
         text = box2.get_first_child().get_text()
-        print(text.split("div"))
         info = text.split("div")
-        self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.set_child(self.box1)
+        self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.set_child(self.displaybox)
 
         home_button = Gtk.Button(label="Back")
         home_button.connect("clicked", self.coupons)
         home_button.set_css_classes(["button"])
-        self.box1.append(home_button)
+        self.displaybox.append(home_button)
 
         image = Gtk.Picture().new_for_filename(f"{info[0]}.jpg")
         image.set_css_classes(["picture"])
-        self.box1.append(image)
+        self.displaybox.append(image)
 
         title = Gtk.Label()
         title.set_markup(f'<span size="200%">{info[3]}\n{info[2]} day(s) left</span>')
         title.set_css_classes(["description"])
-        self.box1.append(title)
+        self.displaybox.append(title)
 
         button = Gtk.Button(label="test")
         button.set_css_classes(['button'])
         button.connect("clicked", self.toggle)
-        self.box1.append(button)
+        self.displaybox.append(button)
 
         buttontext = Gtk.Label()
         button.set_child(buttontext)
@@ -189,42 +198,34 @@ class MainWindow(Gtk.ApplicationWindow):
     def toggle(self, action):
         label = action.get_child()
         info = label.get_text().split("div")
-        print(info)
         isActivated = info[1]
         coupon_id = info[0]
         if isActivated == "True":
             if self.lidl.deactivate_coupon(coupon_id=coupon_id):
-                print("success")
                 self.coupons()
-            else:
-                print("not successful")
         else:
             if self.lidl.activate_coupon(coupon_id=coupon_id):
-                print("success")
                 self.coupons()
-            else:
-                print("not successful")
 
 
     def offers(self, action="", param=""):
          if self.logged_in:
             scrollwin = Gtk.ScrolledWindow.new()
             self.set_child(scrollwin)
-            self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            scrollwin.set_child(self.box1)
+            self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            scrollwin.set_child(self.displaybox)
             self.label = Gtk.Label()
-            self.box1.append(self.label)
+            self.displaybox.append(self.label)
             self.label.set_markup('<span size="larger" weight="bold">Offers</span>')
             self.label.set_css_classes(["text"])
-            print(self.lidl.offers(self.store))
-            offers = self.lidl.offers("HU0358")["offers"]
+            offers = self.lidl.offers(self.store)["offers"]
             for offer in offers:
                 activate = Gtk.Button() #label="Activate/Deactivate"
                 activate.set_css_classes(['button'])
-                self.box1.append(activate)
+                self.displaybox.append(activate)
                 #activate.connect("clicked", self.details)
                 box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-                #self.box1.append(box)
+                #self.displaybox.append(box)
                 activate.set_child(box)
                 #img = requests.get(offer["imageUrl"])
                 #with open(f"{offer["id"]}.jpg", "wb") as w:
@@ -254,20 +255,20 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.logged_in:
             scrollwin = Gtk.ScrolledWindow.new()
             self.set_child(scrollwin)
-            self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            scrollwin.set_child(self.box1)
+            self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            scrollwin.set_child(self.displaybox)
             self.label = Gtk.Label()
-            self.box1.append(self.label)
+            self.displaybox.append(self.label)
             self.label.set_markup('<span size="larger" weight="bold">Coupons</span>')
             self.label.set_css_classes(["text"])
             brochures = self.lidl.brochures(self.store)[0]["flyers"]
             for brochure in brochures:
                 activate = Gtk.Button() #label="Activate/Deactivate"
                 activate.set_css_classes(['button'])
-                self.box1.append(activate)
+                self.displaybox.append(activate)
                 activate.connect("clicked", self.brochuredetails)
                 box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-                #self.box1.append(box)
+                #self.displaybox.append(box)
                 activate.set_child(box)
                 img = Gio.File.new_for_uri(brochure["thumbnailUrl"])
                 img2 = GdkPixbuf.Pixbuf.new_from_stream(img.read(cancellable=None))
@@ -294,52 +295,50 @@ class MainWindow(Gtk.ApplicationWindow):
         box = action.get_child()
         box2 = box.get_first_child().get_next_sibling()
         text = box2.get_first_child().get_text()
-        print(text.split("div"))
         info = text.split("div")
         webbrowser.open(info[0])
 
     def login(self, action):
         if not os.path.exists("login.json"):
             if self.refreshtokenentry.get_text() != "":
-                self.lidl = api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=self.refreshtokenentry.get_text())
+                self.lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=self.refreshtokenentry.get_text())
                 self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
                 with open("login.json", "w") as login:
                     login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
             else:
-                self.lidl = api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper())
+                self.lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper())
                 self.lidl.login(email=self.usernameentry.get_text(), password=self.passwordentry.get_text())
                 self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
                 with open("login.json", "w") as login:
                     login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
         else:
             with open("login.json", "r") as login:
-                jason = json.loads(login.read())
-                refresh_token = jason["refresh_token"]
-            self.lidl = api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=refresh_token)
+                loader = json.loads(login.read())
+                refresh_token = loader["refresh_token"]
+            self.lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=refresh_token)
         #print(self.usernameentry.get_text())
         #print(self.passwordentry.get_text())
         self.logged_in = True
-        #print(self.lidl.offers("HU0358"))
         self.home()
     def home(self, action="", param=""):
-        self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.set_child(self.box1)
-        self.box1.set_css_classes(["home"])
+        self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.set_child(self.displaybox)
+        self.displaybox.set_css_classes(["home"])
         self.label = Gtk.Label()
         self.label.set_css_classes(["text"])
-        self.box1.append(self.label)
+        self.displaybox.append(self.label)
         if self.logged_in:
             self.centerbox = Gtk.CenterBox()
             self.set_child(self.centerbox)
-            self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.centerbox.set_center_widget(self.box1)
-            if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
-                self.label.set_markup('<span size="larger" weight="bold">Home</span>')
-            else:
-                self.label.set_markup(f'<span size="larger" weight="bold">Home\nYou have a scratch card to redeem!</span>')
+            self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.centerbox.set_center_widget(self.displaybox)
+            #if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
+            #    self.label.set_markup('<span size="larger" weight="bold">Home</span>')
+            #else:
+            #    self.label.set_markup(f'<span size="larger" weight="bold">Home\nYou have a scratch card to redeem!</span>')
             
             schedulebox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.box1.append(schedulebox)
+            self.displaybox.append(schedulebox)
             schedule = Gtk.Label()
             schedulebox.append(schedule)
             store_schedule = self.lidl.store_schedule(self.store)
@@ -352,7 +351,7 @@ class MainWindow(Gtk.ApplicationWindow):
             
             # grid
             grid = Gtk.Grid()
-            self.box1.append(grid)
+            self.displaybox.append(grid)
 
             # qr code
             qrbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -368,114 +367,100 @@ class MainWindow(Gtk.ApplicationWindow):
             buttonsbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             grid.attach(buttonsbox, column=1, row=0, width=5, height=1)
 
-            couponbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            buttonsbox.append(couponbox)
-
             couponbutton = Gtk.Button(label="coupons")
             couponbutton.set_css_classes(['button'])
             couponbutton.connect("clicked", self.coupons)
-            couponbox.append(couponbutton)
+            buttonsbox.append(couponbutton)
 
             couponlabel = Gtk.Label()
             couponlabel.set_markup('<span size="x-large">                         Coupons                         </span>')
             couponbutton.set_child(couponlabel)
 
-            offerbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            buttonsbox.append(offerbox)
-
             offerbutton = Gtk.Button(label="offers")
             offerbutton.set_css_classes(['button'])
             offerbutton.connect("clicked", self.offers)
-            offerbox.append(offerbutton)
+            buttonsbox.append(offerbutton)
 
             offerlabel = Gtk.Label()
             offerlabel.set_markup('<span size="x-large">                          Offers                          </span>')
             offerbutton.set_child(offerlabel)
 
-            brochuresbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            buttonsbox.append(brochuresbox)
-            
             brochuresbutton = Gtk.Button(label="brochures")
             brochuresbutton.set_css_classes(['button'])
             brochuresbutton.connect("clicked", self.brochures)
-            brochuresbox.append(brochuresbutton)
+            buttonsbox.append(brochuresbutton)
 
             brochureslabel = Gtk.Label()
             brochureslabel.set_markup('<span size="x-large">                           Brochures                            </span>')
             brochuresbutton.set_child(brochureslabel)
 
-            settingsbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            buttonsbox.append(settingsbox)
-
             settingsbutton = Gtk.Button(label="settings")
             settingsbutton.set_css_classes(['button'])
             settingsbutton.connect("clicked", self.settings)
-            settingsbox.append(settingsbutton)
+            buttonsbox.append(settingsbutton)
 
             settingslabel = Gtk.Label()
             settingslabel.set_markup('<span size="x-large">                           Settings                            </span>')
             settingsbutton.set_child(settingslabel)
             
 
-            logoutbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            buttonsbox.append(logoutbox)
-
             logoutbutton = Gtk.Button(label="logout")
             logoutbutton.set_css_classes(['button'])
             logoutbutton.connect("clicked", self.logout)
-            logoutbox.append(logoutbutton)
+            buttonsbox.append(logoutbutton)
 
             logoutlabel = Gtk.Label()
             logoutlabel.set_markup('<span size="x-large">                           Logout                            </span>')
             logoutbutton.set_child(logoutlabel)
 
+            if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
+                self.label.set_markup('<span size="larger" weight="bold">Home</span>')
+            else:
+                self.label.set_markup(f'<span size="larger" weight="bold">Home\nYou have a scratch card to redeem!</span>')
+                lotterybutton = Gtk.Button(label="lottery")
+                lotterybutton.set_css_classes(['button'])
+                lotterybutton.connect("clicked", self.purchaseLottery)
+                buttonsbox.append(lotterybutton)
 
-            # store schedule
+                lotterylabel = Gtk.Label()
+                lotterylabel.set_markup('<span size="x-large">                           Redeem Purchase Lottery                            </span>')
+                lotterybutton.set_child(lotterylabel)
 
-            #schedulebox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            #self.box1.append(schedulebox)
-            #schedule = Gtk.Label()
-            #schedulebox.append(schedule)
-            #store_schedule = self.lidl.store_schedule(self.store)
-            #if store_schedule['isOpen'] == "False":
-            #    schedule.set_markup(f'<span size="x-large">{self.lidl.store_details(self.store)[0]["name"]} (currently closed),\n\nopen from: {store_schedule["openingHours"][0]["from"]}\n\nto: {store_schedule["openingHours"][0]["to"]}</span>')
-            #else:
-            #    schedule.set_markup(f'<span size="x-large">{self.lidl.store_details(self.store)[0]["name"]} (currently open),\n\nopen from: {store_schedule["openingHours"][0]["from"]}\n\nto: {store_schedule["openingHours"][0]["to"]}</span>')
         if not self.logged_in:
             if not os.path.exists("login.json"):
-                self.passwordbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                self.box1.append(self.passwordbox)
-                self.passwordbox.set_css_classes(["login-boxes"])
+                passwordbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                self.displaybox.append(passwordbox)
+                passwordbox.set_css_classes(["login-boxes"])
 
-                self.usernamebox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                self.passwordbox.append(self.usernamebox)
-                self.usernamebox.set_css_classes(["login-boxes"])
+                usernamebox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                passwordbox.append(usernamebox)
+                usernamebox.set_css_classes(["login-boxes"])
 
                 self.usernameentry = Gtk.Entry()
-                self.usernamebox.append(self.usernameentry)
+                usernamebox.append(self.usernameentry)
 
-                self.usernamelabel = Gtk.Label()
-                self.usernamelabel.set_markup('<span size="medium">Email</span>')
-                self.usernamebox.append(self.usernamelabel)
+                usernamelabel = Gtk.Label()
+                usernamelabel.set_markup('<span size="medium">Email</span>')
+                usernamebox.append(usernamelabel)
 
                 self.passwordentry = Gtk.PasswordEntry()
-                self.passwordbox.append(self.passwordentry)
+                passwordbox.append(self.passwordentry)
                 self.passwordentry.set_show_peek_icon(True)
 
-                self.passwordlabel = Gtk.Label()
-                self.passwordlabel.set_markup('<span size="medium">Password</span>')
-                self.passwordbox.append(self.passwordlabel)
+                passwordlabel = Gtk.Label()
+                passwordlabel.set_markup('<span size="medium">Password</span>')
+                passwordbox.append(passwordlabel)
 
-                self.countrybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                self.passwordbox.append(self.countrybox)
-                self.countrybox.set_css_classes(["login-boxes"])
+                countrybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                passwordbox.append(countrybox)
+                countrybox.set_css_classes(["login-boxes"])
 
-                self.countrydd = Gtk.DropDown()
-                self.countrydd.connect("notify::selected-item", self.set_country)
-                self.countrybox.append(self.countrydd)
+                countrydd = Gtk.DropDown()
+                countrydd.connect("notify::selected-item", self.set_country)
+                countrybox.append(countrydd)
 
                 strings = Gtk.StringList()
-                self.countrydd.props.model = strings
+                countrydd.props.model = strings
                 countries = requests.get("https://appgateway.lidlplus.com/configurationapp/v3/countries").json()
                 items = ""
                 for country in countries:
@@ -485,61 +470,61 @@ class MainWindow(Gtk.ApplicationWindow):
                 for item in items:
                     strings.append(item)
 
-                self.countrylabel = Gtk.Label()
-                self.countrylabel.set_markup('<span size="medium">Country</span>')
-                self.countrybox.append(self.countrylabel)
+                countrylabel = Gtk.Label()
+                countrylabel.set_markup('<span size="medium">Country</span>')
+                countrybox.append(countrylabel)
 
-                self.refreshtokenbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                self.countrybox.append(self.refreshtokenbox)
-                self.refreshtokenbox.set_css_classes(["login-boxes"])
+                refreshtokenbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                countrybox.append(refreshtokenbox)
+                refreshtokenbox.set_css_classes(["login-boxes"])
 
                 self.refreshtokenentry = Gtk.Entry()
-                self.refreshtokenbox.append(self.refreshtokenentry)
+                refreshtokenbox.append(self.refreshtokenentry)
 
-                self.refreshtokenlabel = Gtk.Label()
-                self.refreshtokenlabel.set_markup('<span size="medium">Refresh Token (optional)</span>')
-                self.refreshtokenbox.append(self.refreshtokenlabel)
+                refreshtokenlabel = Gtk.Label()
+                refreshtokenlabel.set_markup('<span size="medium">Refresh Token (optional)</span>')
+                refreshtokenbox.append(refreshtokenlabel)
 
-                self.buttonbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                self.countrybox.append(self.buttonbox)
-                self.buttonbox.set_css_classes(["login-boxes"])
+                buttonbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                countrybox.append(buttonbox)
+                buttonbox.set_css_classes(["login-boxes"])
 
-                self.button = Gtk.Button(label="Login")
-                self.buttonbox.append(self.button)
-                self.button.connect("clicked", self.login)
+                button = Gtk.Button(label="Login")
+                buttonbox.append(button)
+                button.connect("clicked", self.login)
 
                 login_button_label = Gtk.Label()
                 login_button_label.set_markup('<span size="large">Login</span>')
-                self.button.set_child(login_button_label)
+                button.set_child(login_button_label)
             else:
                 with open("login.json", "r") as login:
-                    jason = json.loads(login.read())
-                    self.refresh_token = jason["refresh_token"]
-                    self.country = jason["country"]
-                    self.store = jason["store"]
-                self.lidl = api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=self.refresh_token)
+                    loader = json.loads(login.read())
+                    self.refresh_token = loader["refresh_token"]
+                    self.country = loader["country"]
+                    self.store = loader["store"]
+                self.lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=self.refresh_token)
                 self.logged_in = True
                 self.home()
 
     def settings(self, action="", param=""):
         if self.logged_in:
-            self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.set_child(self.box1)
+            self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.set_child(self.displaybox)
             self.label = Gtk.Label()
             self.label.set_css_classes(["text"])
-            self.box1.append(self.label)
+            self.displaybox.append(self.label)
             self.label.set_markup('<span size="larger" weight="bold">Settings</span>')
 
             # country setting
 
-            self.countrylabel = Gtk.Label()
-            self.countrylabel.set_markup('<span size="medium">  \nCountry</span>')
-            self.box1.append(self.countrylabel)
+            countrylabel = Gtk.Label()
+            countrylabel.set_markup('<span size="medium">  \nCountry</span>')
+            self.displaybox.append(countrylabel)
             
             self.countrydd = Gtk.DropDown()
             self.countrydd.set_css_classes(["settings"])
             #self.countrydd.connect("notify::selected-item", self.set_country)
-            self.box1.append(self.countrydd)
+            self.displaybox.append(self.countrydd)
 
             strings = Gtk.StringList()
             self.countrydd.props.model = strings
@@ -556,15 +541,14 @@ class MainWindow(Gtk.ApplicationWindow):
 
             # store selector
 
-            self.storelabel = Gtk.Label()
-            self.storelabel.set_markup('<span size="medium">  \n  \nStore</span>')
+            storelabel = Gtk.Label()
+            storelabel.set_markup('<span size="medium">  \n  \nStore</span>')
             
-            self.box1.append(self.storelabel)
+            self.displaybox.append(storelabel)
 
             self.storedd = Gtk.DropDown()
             self.storedd.set_css_classes(["settings"])
-            #self.storedd.connect("notify::selected-item", self.set_country)
-            self.box1.append(self.storedd)
+            self.displaybox.append(self.storedd)
 
             strings = Gtk.StringList()
             self.storedd.props.model = strings
@@ -576,8 +560,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
             for item in items:
                 strings.append(item)
-
-            for item in items:
                 if item.endswith(self.store):
                     self.storedd.set_selected(items.index(item))
 
@@ -585,7 +567,7 @@ class MainWindow(Gtk.ApplicationWindow):
             save = Gtk.Button(label="Save")
             save.set_css_classes(["login-boxes"])
             save.connect("clicked", self.save)
-            self.box1.append(save)
+            self.displaybox.append(save)
     
     def save(self, action):
         #box = action.get_parent()
@@ -594,34 +576,30 @@ class MainWindow(Gtk.ApplicationWindow):
         
         #country_selection = country.get_selected_item().get_string()
         country_selection = self.countrydd.get_selected_item().get_string()
-        print(country_selection)
         #store_selection = store.get_selected_item().get_string()
         store_selection = self.storedd.get_selected_item().get_string()
-        print(store_selection.split(": ")[1])
         self.country = country_selection
         self.store = store_selection.split(": ")[1]
         with open("login.json", "w") as login:
             login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
+        self.home()
 
     def set_country(self, dropdown, _pspec):
         self.country=dropdown.props.selected_item.props.string
         if self.country != None:
-            print(f"Selected: {self.country}")
+            pass
 
     def purchaseLottery(self, action):
         if self.logged_in:
-            self.box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.set_child(self.box1)
+            self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.set_child(self.displaybox)
             self.label = Gtk.Label()
             self.label.set_css_classes(["text"])
-            self.box1.append(self.label)
+            self.displaybox.append(self.label)
             if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
                 self.label.set_markup('<span size="larger" weight="bold">There are no scratch coupons to redeem</span>')
             else:
                 self.label.set_markup('<span size="larger" weight="bold">Redeeming</span>')
-                self.spinner = Gtk.Spinner()
-                self.box1.append(self.spinner)
-                self.spinner.start()
                 # here comes the fun
                 coupon_id = self.lidl.home(self.store)["purchaseLottery"][0]["id"]
                 details = self.lidl.purchaseLottery_details(coupon_id=coupon_id)
@@ -639,11 +617,8 @@ class MainWindow(Gtk.ApplicationWindow):
                             raise Exception("redeem error")
                     except:
                         self.label.set_markup(f"<span size='larger' weight='bold'>Couldn't redeem</span>")
-                        self.spinner.stop()
-                        time.sleep(1)
                         self.home()
                     self.label.set_markup('<span size="larger" weight="bold">Successfully redeemed!</span>')
-                    self.spinner.stop()
                     time.sleep(1)
                     self.coupons()
                             
@@ -656,5 +631,5 @@ class MyApp(Adw.Application):
         self.win = MainWindow(application=app)
         self.win.present()
 
-app = MyApp(application_id="xyz.zsobix.lidlplus")
+app = MyApp(application_id="xyz.zsobix.lidlplusui")
 app.run(sys.argv)

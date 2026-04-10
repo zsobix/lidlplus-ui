@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+from setuptools import setup, find_packages
+
+with open("README.md", "r", encoding="utf-8") as f:
+    long_description = f.read()
+
+setup(
+    name="lidlplus-ui",
+    version="0.0.1",
+    author="Zsombor Kalmar",
+    description="Desktop version of the Lidl Plus mobile app using my own implementation of the Lidl Plus api.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    project_urls={
+        "GitHub": "https://github.com/zsobix/lidlplus-ui",
+        "PyPI": "https://pypi.org/project/lidlplus-ui/",
+    },
+    license="GPLv3",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
+    platforms="any",
+    packages=find_packages(),
+    include_package_data=True,
+    python_requires=">=3.8",
+    install_requires=[
+        "requests>=2.28.1",
+        "qrcode >= 8.2",
+        "pillow >= 12.2.0",
+        "lidlplus-api >= 0.0.1"
+    ],
+    extras_require={
+        "auth": [
+            "pyjwkest>=1.4.4",
+            "playwright>=1.58.0"
+        ]
+    },
+)
