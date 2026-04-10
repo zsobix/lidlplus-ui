@@ -41,4 +41,9 @@ setup(
             "playwright>=1.58.0"
         ]
     },
+    entry_points={
+        "console_scripts": [
+            "lidl-plus = lidlplus_ui.__main__:main",
+        ]
+    },
 )
