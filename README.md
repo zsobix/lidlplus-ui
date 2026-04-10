@@ -1,44 +1,100 @@
-# lidlplus-ui
-<h3>The Lidl Plus app on Desktop (written in Python using GTK and libadwaita)</h3>
+# Lidl Plus on Desktop
 
+A desktop UI for Lidl Plus, written in **Python** using **GTK** and **libadwaita**.
+
+> This is an unofficial project and is not affiliated with Lidl.
 
 <img width="1163" height="708" alt="screenshot" src="https://github.com/user-attachments/assets/9cb6ef60-f60b-4727-ba66-b7a5a947db66" />
 
-## Setup
-Install Python 3 including pip
+## What you need
 
-Clone this repo `git clone --recurse-submodules --remote-submodules https://github.com/Zsobix/lidlplus-ui`
+- **Python 3** + **pip**
+- Git
+- Platform dependencies for **GTK / libadwaita / PyGObject**
+- Playwright browser dependencies (macOS/Linux)
 
-### Mac and Linux:
-Install all requirements `pip install -r requirements.txt`
+## Installation
 
-Run `playwright install`
+### 1) Clone the repository
 
-Install all dependencies that playwright requires
+Clone with submodules (required):
 
-Install PyGObject, GTK, and libadwaita packages for your distro<sup><a href="https://pygobject.gnome.org/getting_started.html">[1]</a></sup>
+```bash
+git clone --recurse-submodules --remote-submodules https://github.com/Zsobix/lidlplus-ui
+cd lidlplus-ui
+```
 
-Done!
+---
 
-### Windows
-Follow the "Windows" part in <a href="https://pygobject.gnome.org/getting_started.html">this</a> guide.
+## macOS / Linux setup
 
-Execute `pacman -Sy mingw-w64-ucrt-x86_64-libadwaita`
+### 2) Install Python dependencies
 
-Install all requirements `pip install -r msys-requirements.txt`
+```bash
+pip install -r requirements.txt
+```
 
-Since playwright doesn't work in Msys, you need to first run the `getrefreshtoken.py` file to get the refresh token.
+### 3) Install Playwright browser(s)
 
-On first login, instead of email and password, you need to give the refresh token instead.
+```bash
+playwright install
+```
 
-Done!
+### 4) Install system packages
 
-## Usage
+You must install **PyGObject**, **GTK**, and **libadwaita** for your distribution.
 
-1. Run `ui.py`
+- See PyGObject’s official “Getting Started” guide: https://pygobject.gnome.org/getting_started.html
+
+After that, you’re ready to run the app.
+
+---
+
+## Windows setup (MSYS2)
+
+### 2) Install GTK/libadwaita via pacman
+
+Follow the **Windows** section of the PyGObject guide first:
+https://pygobject.gnome.org/getting_started.html
+
+Then install libadwaita:
+
+```bash
+pacman -Sy mingw-w64-ucrt-x86_64-libadwaita
+```
+
+### 3) Install Python dependencies for Windows/MSYS2
+
+```bash
+pip install -r msys-requirements.txt
+```
+
+### 4) Playwright note (important)
+
+Playwright does **not** work in MSYS2, so login works differently on Windows:
+
+1. Run this script to obtain a refresh token:
+   ```bash
+   python getrefreshtoken.py
+   ```
+2. On the first login in the UI, enter the **refresh token** instead of email/password.
+
+---
+
+## Running the app
+
+```bash
+python ui.py
+```
+
+Then:
+1. Launch the app
 2. Log in
-3. ???
-4. profit
+3. Use Lidl Plus on your desktop
 
-## Legal Notice
-This application is an open source project written in Python, which uses the API of the Lidl Plus application, owned by Lidl Stiftung & Co. KG. The application was created solely for educational purposes and is not affiliated with Lidl Stiftung & Co. KG. The creator of the application is not affiliated with Lidl Stiftung & Co. KG. in any way and does not derive any financial benefits from this project. All trademarks, trade names, and logos are the property of their respective owners. Users use the application at their own risk.
+---
+
+## Legal notice
+
+This is an open source project written in Python that interacts with the Lidl Plus API, which is owned by **Lidl Stiftung & Co. KG**.  
+This project is provided for educational purposes. All trademarks and brand names belong to their respective owners.
