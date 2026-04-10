@@ -15,32 +15,23 @@ A desktop UI for Lidl Plus, written in **Python** using **GTK** and **libadwaita
 
 ## Installation
 
-### 1) Clone the repository
-
-Clone with submodules (required):
+### 1) Download from PyPI
 
 ```bash
-git clone --recurse-submodules --remote-submodules https://github.com/Zsobix/lidlplus-ui
-cd lidlplus-ui
+pip install lidlplus-ui
 ```
 
 ---
 
 ## macOS / Linux setup
 
-### 2) Install Python dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3) Install Playwright browser(s)
+### 2) Install Playwright browser(s)
 
 ```bash
 playwright install
 ```
 
-### 4) Install system packages
+### 3) Install system packages
 
 You must install **PyGObject**, **GTK**, and **libadwaita** for your distribution.
 
@@ -63,19 +54,13 @@ Then install libadwaita:
 pacman -Sy mingw-w64-ucrt-x86_64-libadwaita
 ```
 
-### 3) Install Python dependencies for Windows/MSYS2
-
-```bash
-pip install -r msys-requirements.txt
-```
-
-### 4) Playwright note (important)
+### 3) Playwright note (important)
 
 Playwright does **not** work in MSYS2, so login works differently on Windows:
 
 1. Run this script to obtain a refresh token:
    ```bash
-   python getrefreshtoken.py
+   lidlplus-ui auth
    ```
 2. On the first login in the UI, enter the **refresh token** instead of email/password.
 
@@ -84,7 +69,7 @@ Playwright does **not** work in MSYS2, so login works differently on Windows:
 ## Running the app
 
 ```bash
-python ui.py
+lidlplus-ui
 ```
 
 Then:
