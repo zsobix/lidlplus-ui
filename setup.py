@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="lidlplus-ui",
-    version="0.0.4",
+    version="0.0.5",
     author="Zsombor Kalmar",
     description="Desktop version of the Lidl Plus mobile app using my own implementation of the Lidl Plus api.",
     long_description=long_description,
@@ -31,7 +31,7 @@ setup(
         "requests >= 2.28.1",
         "qrcode >= 8.2",
         "pyjwkest >= 1.4.4",
-        "PyGObject >= 3.56.2"
+        "PyGObject >= 3.56.2",
         "lidlplus-api >= 0.0.2"
     ],
     extras_require={
