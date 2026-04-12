@@ -32,7 +32,6 @@ setup(
     install_requires=[
         "requests>=2.28.1",
         "qrcode >= 8.2",
-        "pillow >= 12.2.0",
         "lidlplus-api >= 0.0.1"
     ],
     extras_require={
