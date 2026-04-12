@@ -23,37 +23,17 @@ A desktop UI for Lidl Plus, written in **Python** using **GTK** and **libadwaita
 pip install lidlplus-ui
 ```
 
----
-
-## macOS / Linux setup
-
-### 2) Install Playwright browser(s)
-
-```bash
-playwright install
-```
-
-### 3) Install system packages
-
-You must install **PyGObject**, **GTK**, and **libadwaita** for your distribution.
-
-- See PyGObject’s official “Getting Started” guide: https://pygobject.gnome.org/getting_started.html
-
-After that, you’re ready to run the app.
-
----
-
 
 ## Running the app
 
 ```bash
 lidlplus-ui
 ```
+The script will attempt to automatically install all dependencies.
 
 Then:
-1. Launch the app
-2. Log in
-3. Use Lidl Plus on your desktop!!!
+1. Log in
+2. Use Lidl Plus on your desktop!!!
 
 ---
 
