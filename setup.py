@@ -32,11 +32,11 @@ setup(
     install_requires=[
         "requests>=2.28.1",
         "qrcode >= 8.2",
+        "pyjwkest>=1.4.4",
         "lidlplus-api >= 0.0.2"
     ],
     extras_require={
         "auth": [
-            "pyjwkest>=1.4.4",
             "playwright>=1.58.0"
         ]
     },
