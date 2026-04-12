@@ -3,4 +3,4 @@ requests
 playwright
 qrcode
 lidlplus-api
-pillow
+PyGObject

@@ -2,4 +2,4 @@ pyjwkest
 requests
 qrcode
 lidlplus-api
-pillow
+PyGObject

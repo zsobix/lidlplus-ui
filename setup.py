@@ -19,20 +19,19 @@ setup(
     license="GPLv3",
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Environment :: Console",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     platforms="any",
     packages=find_packages(),
     include_package_data=True,
     python_requires=">=3.8",
     install_requires=[
-        "requests>=2.28.1",
+        "requests >= 2.28.1",
         "qrcode >= 8.2",
-        "pyjwkest>=1.4.4",
+        "pyjwkest >= 1.4.4",
+        "PyGObject >= 3.56.2"
         "lidlplus-api >= 0.0.2"
     ],
     extras_require={

@@ -1,7 +1,11 @@
+import sys
 try:
     from .ui import MyApp
 except:
-    print("PyGObject isn't found, assuming this is currently being run in Windows")
+    if sys.platform != "win32":
+        raise Exception("You didn't install the dependencies. Read the readme again, and if the issue sticks, tell me it in the issues.")
+    else:
+        print("PyGObject isn't found, assuming this is currently being run in Windows")
 import argparse
 from lidlplus_api import LidlPlusApi
     
