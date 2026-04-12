@@ -11,9 +11,11 @@ A desktop UI for Lidl Plus, written in **Python** using **GTK** and **libadwaita
 - **Python 3** + **pip**
 - Git
 - Platform dependencies for **GTK / libadwaita / PyGObject**
-- Playwright browser dependencies (macOS/Linux)
+- Playwright browser dependencies
 
 ## Installation
+
+> This only works on macOS/Linux only now because I gave up working with Windows.
 
 ### 1) Download from PyPI
 
@@ -41,30 +43,6 @@ After that, you’re ready to run the app.
 
 ---
 
-## Windows setup (MSYS2)
-
-### 2) Install GTK/libadwaita via pacman
-
-Follow the **Windows** section of the PyGObject guide first:
-https://pygobject.gnome.org/getting_started.html
-
-Then install libadwaita:
-
-```bash
-pacman -Sy mingw-w64-ucrt-x86_64-libadwaita
-```
-
-### 3) Playwright note (important)
-
-Playwright does **not** work in MSYS2, so login works differently on Windows:
-
-1. Run this script to obtain a refresh token:
-   ```bash
-   lidlplus-ui auth
-   ```
-2. On the first login in the UI, enter the **refresh token** instead of email/password.
-
----
 
 ## Running the app
 
@@ -75,7 +53,7 @@ lidlplus-ui
 Then:
 1. Launch the app
 2. Log in
-3. Use Lidl Plus on your desktop
+3. Use Lidl Plus on your desktop!!!
 
 ---
 

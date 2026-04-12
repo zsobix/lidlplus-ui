@@ -151,13 +151,13 @@ class MainWindow(Gtk.ApplicationWindow):
                 box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
                 #self.displaybox.append(box)
                 centerbox.set_start_widget(box)
-                #img = Gio.File.new_for_uri(coupon["image"]["url"])
-                #img2 = GdkPixbuf.Pixbuf.new_from_stream(img.read(cancellable=None))
-                #image = Gtk.Picture().new_for_pixbuf(img2)
-                img = requests.get(coupon["image"]["url"])
-                with open(f"{coupon["id"]}.jpg", "wb") as w:
-                    w.write(img.content)
-                image = Gtk.Picture().new_for_filename(f"{coupon["id"]}.jpg")
+                img = Gio.File.new_for_uri(coupon["image"]["url"])
+                img2 = GdkPixbuf.Pixbuf.new_from_stream(img.read(cancellable=None))
+                image = Gtk.Picture().new_for_pixbuf(img2)
+                #img = requests.get(coupon["image"]["url"])
+                #with open(f"{coupon["id"]}.jpg", "wb") as w:
+                #    w.write(img.content)
+                #image = Gtk.Picture().new_for_filename(f"{coupon["id"]}.jpg")
                 image.set_css_classes(["picture"])
                 box.append(image)
 
@@ -171,7 +171,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 expirydate = expirydate - today
                 expirydate = expirydate.days
                 name = Gtk.Label()
-                name.set_markup(f'<span size="1%">{coupon["id"]}div{coupon["isActivated"]}div{expirydate}div</span><span size="larger">{coupon["title"]}\n</span><span>{coupon["discount"]["title"]}, {coupon["discount"]["description"]}</span>')
+                name.set_markup(f'<span size="1%">{coupon["id"]}div{coupon["isActivated"]}div{expirydate}div{coupon["image"]["url"]}div</span><span size="larger">{coupon["title"]}\n</span><span>{coupon["discount"]["title"]}, {coupon["discount"]["description"]}</span>')
                 name.set_css_classes(["text"])
                 box2.append(name)
 
@@ -212,12 +212,16 @@ class MainWindow(Gtk.ApplicationWindow):
         home_button.set_css_classes(["button"])
         self.displaybox.append(home_button)
 
-        image = Gtk.Picture().new_for_filename(f"{info[0]}.jpg")
+        img = Gio.File.new_for_uri(info[3])
+        img2 = GdkPixbuf.Pixbuf.new_from_stream(img.read(cancellable=None))
+        image = Gtk.Picture().new_for_pixbuf(img2)
+
+        #image = Gtk.Picture().new_for_filename(f"{info[0]}.jpg")
         image.set_css_classes(["picture"])
         self.displaybox.append(image)
 
         title = Gtk.Label()
-        title.set_markup(f'<span size="200%">{info[3]}\n{info[2]} day(s) left</span>')
+        title.set_markup(f'<span size="200%">{info[4]}\n{info[2]} day(s) left</span>')
         title.set_css_classes(["description"])
         self.displaybox.append(title)
 
@@ -668,6 +672,3 @@ class MyApp(Adw.Application):
     def on_activate(self, app):
         self.win = MainWindow(application=app)
         self.win.present()
-
-app = MyApp(application_id="xyz.zsobix.lidlplusui")
-app.run(sys.argv)

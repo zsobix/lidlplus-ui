@@ -1,5 +1,0 @@
-pyjwkest
-requests
-qrcode
-lidlplus-api
-PyGObject

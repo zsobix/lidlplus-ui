@@ -1,41 +1,68 @@
-import sys
-try:
-    from .ui import MyApp
-except:
-    if sys.platform != "win32":
-        raise Exception("You didn't install the dependencies. Read the readme again, and if the issue sticks, tell me it in the issues.")
-    else:
-        print("PyGObject isn't found, assuming this is currently being run in Windows")
+import os
+from .ui import MyApp
 import argparse
 from lidlplus_api import LidlPlusApi
-    
-def get_arguments():
-    """Get parsed arguments."""
-    parser = argparse.ArgumentParser(
-        prog="lidlplus-ui",
-        description="Lidl Plus on Desktop",
-        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=28),
-    )
-    parser.add_argument("auth", help="authenticate and print refresh_token")
-    return vars(parser.parse_args())
+import distro
 
-def lidl_plus_login():
-    language = input("Enter your language (de, en, ...): ")
-    country = input("Enter your country (DE, AT, ...): ")
-    username = input("Enter your lidl plus username (phone number): ")
-    password = input("Enter your lidl plus password: ")
-    api = LidlPlusApi(language, country)
-    api.login(email=username,password=password)
-    print(f"Your refresh token is: {api._refresh_token}")
+#def get_arguments():
+#    """Get parsed arguments."""
+#    parser = argparse.ArgumentParser(
+#        prog="lidlplus-ui",
+#        description="Lidl Plus on Desktop",
+#        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=28),
+#    )
+#    parser.add_argument("auth", help="authenticate and print refresh_token")
+#    return vars(parser.parse_args())
+#
+#def lidl_plus_login():
+#    language = input("Enter your language (de, en, ...): ")
+#    country = input("Enter your country (DE, AT, ...): ")
+#    username = input("Enter your lidl plus username (phone number): ")
+#    password = input("Enter your lidl plus password: ")
+#    api = LidlPlusApi(language, country)
+#    api.login(email=username,password=password)
+#    print(f"Your refresh token is: {api._refresh_token}")
 
+def lidl_plus_run():
+    try:
+        import gi
+        gi.require_version('Gtk', '4.0')
+        gi.require_version('Adw', '1')
+        from gi.repository import Gtk, Gdk, Adw, Gio, GdkPixbuf
+    except:
+        print("Couldn't find GTK/libadwaita, installing...")
+        current_distro = distro.id()
+        match current_distro:
+            case "arch":
+                os.system("sudo pacman -Sy cairo pkgconf gobject-introspection gtk4 libadwaita")
+            case "opensuse":
+                os.system("sudo zypper install cairo-devel pkg-config python3-devel gcc gobject-introspection-devel libadwaita")
+            case "fedora":
+                os.system("sudo dnf install gcc gobject-introspection-devel cairo-gobject-devel pkg-config python3-devel gtk4 libadwaita")
+            case "ubuntu":
+                os.system("sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 libadwaita-1")
+            case "debian":
+                os.system("sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 libadwaita-1")
+        print("If nothing tried to install, you are probably using macOS, and you need to install https://brew.sh and run 'brew install pygobject3 gtk4 libadwaita'")
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.firefox.launch()
+            page = browser.new_page()
+            browser.close()
+    except:
+        print("Couldn't find playwright browsers, trying to install.")
+        os.system("playwright install")
+
+    app = MyApp(application_id="xyz.zsobix.lidlplusui")
+    app.run()
 
 def main():
-    args = get_arguments()
-    if args.get("auth"):
-        lidl_plus_login()
-    else:
-        app = MyApp(application_id="xyz.zsobix.lidlplusui")
-        app.run()
+    #args = get_arguments()
+    #if args.get("auth"):
+    #    lidl_plus_login()
+    #else:
+    lidl_plus_run()
 
 if __name__ == "__main__":
     main()
