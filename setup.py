@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="lidlplus-ui",
-    version="0.0.2",
+    version="0.0.3",
     author="Zsombor Kalmar",
     description="Desktop version of the Lidl Plus mobile app using my own implementation of the Lidl Plus api.",
     long_description=long_description,
