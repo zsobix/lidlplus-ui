@@ -1,4 +1,7 @@
-from .ui import MyApp
+try:
+    from .ui import MyApp
+except:
+    print("PyGObject isn't found, assuming this is currently being run in Windows")
 import argparse
 from lidlplus_api import LidlPlusApi
     

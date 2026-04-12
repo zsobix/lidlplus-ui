@@ -32,7 +32,7 @@ setup(
     install_requires=[
         "requests>=2.28.1",
         "qrcode >= 8.2",
-        "lidlplus-api >= 0.0.1"
+        "lidlplus-api >= 0.0.2"
     ],
     extras_require={
         "auth": [
