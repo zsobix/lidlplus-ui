@@ -43,7 +43,12 @@ def lidl_plus_run():
                 os.system("sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 libadwaita-1")
             case "debian":
                 os.system("sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 libadwaita-1")
-        print("If nothing tried to install, you are probably using macOS, and you need to install https://brew.sh and run 'brew install pygobject3 gtk4 libadwaita'")
+            case "chromeos":
+                print("You need to install https://github.com/chromebrew/chromebrew and run 'crew install gcc cairo gobject_introspection gtk4 libadwaita'")
+                exit()  
+            case "darwin":
+                print("You need to install https://brew.sh and run 'brew install pygobject3 gtk4 libadwaita'")
+                exit()
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:

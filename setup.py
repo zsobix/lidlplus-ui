@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="lidlplus-ui",
-    version="0.0.6",
+    version="0.0.7",
     author="Zsombor Kalmar",
     description="Desktop version of the Lidl Plus mobile app using my own implementation of the Lidl Plus api.",
     long_description=long_description,
@@ -21,7 +21,13 @@ setup(
         "Development Status :: 4 - Beta",
         "Natural Language :: English",
         "Operating System :: POSIX",
+        "Operating System :: MacOS",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.14",
     ],
     platforms="any",
     packages=find_packages(),
