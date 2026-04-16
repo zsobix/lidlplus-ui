@@ -1,27 +1,6 @@
 import os
 from .ui import MyApp
-import argparse
-from lidlplus_api import LidlPlusApi
 import distro
-
-#def get_arguments():
-#    """Get parsed arguments."""
-#    parser = argparse.ArgumentParser(
-#        prog="lidlplus-ui",
-#        description="Lidl Plus on Desktop",
-#        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=28),
-#    )
-#    parser.add_argument("auth", help="authenticate and print refresh_token")
-#    return vars(parser.parse_args())
-#
-#def lidl_plus_login():
-#    language = input("Enter your language (de, en, ...): ")
-#    country = input("Enter your country (DE, AT, ...): ")
-#    username = input("Enter your lidl plus username (phone number): ")
-#    password = input("Enter your lidl plus password: ")
-#    api = LidlPlusApi(language, country)
-#    api.login(email=username,password=password)
-#    print(f"Your refresh token is: {api._refresh_token}")
 
 def lidl_plus_run():
     try:
@@ -45,8 +24,20 @@ def lidl_plus_run():
                 os.system("sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 libadwaita-1")
             case "chromeos":
                 print("You need to install https://github.com/chromebrew/chromebrew and run 'crew install gcc cairo gobject_introspection gtk4 libadwaita'")
-                exit()  
+                exit() 
+            case "chrome":
+                print("You need to install https://github.com/chromebrew/chromebrew and run 'crew install gcc cairo gobject_introspection gtk4 libadwaita'")
+                exit()
+            case "chromium":
+                print("You need to install https://github.com/chromebrew/chromebrew and run 'crew install gcc cairo gobject_introspection gtk4 libadwaita'")
+                exit()
+            case "chromiumos":
+                print("You need to install https://github.com/chromebrew/chromebrew and run 'crew install gcc cairo gobject_introspection gtk4 libadwaita'")
+                exit()
             case "darwin":
+                print("You need to install https://brew.sh and run 'brew install pygobject3 gtk4 libadwaita'")
+                exit()
+            case "macos":
                 print("You need to install https://brew.sh and run 'brew install pygobject3 gtk4 libadwaita'")
                 exit()
     try:
@@ -63,10 +54,6 @@ def lidl_plus_run():
     app.run()
 
 def main():
-    #args = get_arguments()
-    #if args.get("auth"):
-    #    lidl_plus_login()
-    #else:
     lidl_plus_run()
 
 if __name__ == "__main__":

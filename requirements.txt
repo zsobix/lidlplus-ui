@@ -4,3 +4,4 @@ playwright
 qrcode
 lidlplus-api
 PyGObject
+pillow
