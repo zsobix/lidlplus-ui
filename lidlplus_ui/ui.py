@@ -301,7 +301,7 @@ class MainWindow(Gtk.ApplicationWindow):
             scrollwin.set_child(self.displaybox)
             self.label = Gtk.Label()
             self.displaybox.append(self.label)
-            self.label.set_markup('<span size="larger" weight="bold">Coupons</span>')
+            self.label.set_markup('<span size="larger" weight="bold">Brochures</span>')
             self.label.set_css_classes(["text"])
             brochures = self.lidl.brochures(self.store)[0]["flyers"]
             for brochure in brochures:
