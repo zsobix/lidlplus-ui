@@ -344,15 +344,12 @@ class MainWindow(Gtk.ApplicationWindow):
         if not os.path.exists("login.json"):
             if self.refreshtokenentry.get_text() != "":
                 self.lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=self.refreshtokenentry.get_text())
-                self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
-                with open("login.json", "w") as login:
-                    login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
             else:
                 self.lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper())
                 self.lidl.login(email=self.usernameentry.get_text(), password=self.passwordentry.get_text())
-                self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
-                with open("login.json", "w") as login:
-                    login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
+            self.store = requests.get(f"https://stores.lidlplus.com/api/v4/{self.country}").json()[0]["storeKey"]
+            with open("login.json", "w") as login:
+                login.write(json.dumps({"refresh_token": self.lidl._refresh_token, "country": self.country, "store": self.store}))
         else:
             with open("login.json", "r") as login:
                 loader = json.loads(login.read())
@@ -538,6 +535,17 @@ class MainWindow(Gtk.ApplicationWindow):
                 login_button_label = Gtk.Label()
                 login_button_label.set_markup('<span size="large">Login</span>')
                 button.set_child(login_button_label)
+
+                registerclick = Gtk.GestureClick()
+                registerclick.connect("pressed", self.register)
+
+                registerlabel = Gtk.Label()
+                registerlabel.set_markup('<span color="#2D68C4" underline="single" underline_color="#2D68C4" size="medium">Register</span>')
+                registerlabel.set_css_classes(["text"])
+                registerlabel.add_controller(registerclick)
+                buttonbox.append(registerlabel)
+
+
             else:
                 with open("login.json", "r") as login:
                     loader = json.loads(login.read())
@@ -547,6 +555,10 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper(), refresh_token=self.refresh_token)
                 self.logged_in = True
                 self.home()
+
+    def register(self, a, b, c, d):
+        lidl = lidlplus_api.LidlPlusApi(language=str(self.country).lower(), country=str(self.country).upper())
+        webbrowser.open(url=lidl._register_oauth_client())
 
     def settings(self, action="", param=""):
         if self.logged_in:
@@ -640,6 +652,13 @@ class MainWindow(Gtk.ApplicationWindow):
             self.displaybox.append(self.label)
             if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
                 self.label.set_markup('<span size="larger" weight="bold">There are no scratch coupons to redeem</span>')
+                backbutton = Gtk.Button(label="back")
+                backbutton.connect("clicked", self.home)
+                backbutton.set_css_classes(["button"])
+                self.displaybox.append(backbutton)
+                buttonlabel = Gtk.Label()
+                buttonlabel.set_markup('<span size="larger" weight="bold">Back</span>')
+                backbutton.set_child(buttonlabel)
             else:
                 self.label.set_markup('<span size="larger" weight="bold">Redeeming</span>')
                 # here comes the fun

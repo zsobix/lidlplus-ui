@@ -1,5 +1,5 @@
 import os
-from .ui import MyApp
+from ui import MyApp
 import distro
 
 def lidl_plus_run():
@@ -43,12 +43,12 @@ def lidl_plus_run():
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
-            browser = p.firefox.launch()
+            browser = p.chromium.launch()
             page = browser.new_page()
             browser.close()
     except:
         print("Couldn't find playwright browsers, trying to install.")
-        os.system("playwright install")
+        os.system("playwright install chromium")
 
     app = MyApp(application_id="xyz.zsobix.lidlplusui")
     app.run()
