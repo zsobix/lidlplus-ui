@@ -1,5 +1,5 @@
 import os
-from ui import MyApp
+from .ui import MyApp
 import distro
 
 def lidl_plus_run():
