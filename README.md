@@ -17,7 +17,15 @@ A desktop UI for Lidl Plus, written in **Python** using **GTK** and **libadwaita
 
 > This only works on macOS/Linux only now because I gave up working with Windows.
 
-### 1) Download from PyPI
+### 1a) Download the flatpak package
+
+Download and install the flatpak package from the **releases**
+
+```bash
+flatpak install xyz.zsobix.lidlplusui.flatpak
+```
+
+### 1b) Download from PyPI
 
 ```bash
 pip install lidlplus-ui
@@ -25,6 +33,20 @@ pip install lidlplus-ui
 
 
 ## Running the app
+
+### 2a) If you installed it with the flatpak package
+
+Just run the desktop shortcut
+
+Or run:
+
+```bash
+flatpak run xyz.zsobix.lidlplusui
+```
+
+The flatpak package has all dependencies included, so you **shouldn't** need to download anything.
+
+### 2b) If you downloaded it from PyPI
 
 ```bash
 lidlplus-ui
@@ -36,6 +58,10 @@ Then:
 2. Use Lidl Plus on your desktop!!!
 
 ---
+
+## Issues
+
+If you have any problem with my project, just write in the issues tab!
 
 ## Legal notice
 
