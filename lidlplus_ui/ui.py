@@ -712,8 +712,6 @@ class MainWindow(Gtk.ApplicationWindow):
         # get/patch list content: https://shopping-list.lidlplus.com/api/v4/lists/{list_id} method: PATCH
         # auth: token, storeid, region
         # needed: include request body json: {"items": [],"list": {"itemIds": [],"deletedItems": []}} 
-        # 
-        # if already have list, on addition json: {"items":[{"type":"FreeText","title":"Dupla csokis parna","quantity":1,"isChecked":false,"id":"23b4028f-bc4e-46bb-a2d3-9a5a32ce35b4","country":"HU","lastUpdate":"2026-04-19T15:51:33.275886","productSource":"SHOPPINGLIST_SEARCH"}],"list":{"itemIds":["94549666-1129-4c8c-861a-53ae13eb3ba8","61ea1ad4-203c-4e41-b549-3e52e6af50fa","23b4028f-bc4e-46bb-a2d3-9a5a32ce35b4"],"deletedItems":[]}}
         # user-agent: ktor-client ?????
         if self.logged_in:
             self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -724,19 +722,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.label.set_markup('<span size="larger" weight="bold">Shopping List</span>')    
 
             self.shoppinglistid = self.lidl.shoppinglists(self.store)['lists'][0]['id'] # automatically selects first shopping list
-            #body = {"items": [],"list": {"itemIds": [],"deletedItems": []}}
             self.shoppinglist = self.lidl.shoppinglist(self.shoppinglistid, self.store)
-            #self.shoppinglist = '{"items":[{"id":"94549666-1129-4c8c-861a-53ae13eb3ba8","productSource":"OFFERS_GRID","type":"FreeText","title":"Ban\u00e1ny Retro","brand":"Orion","quantity":1,"isChecked":true,"images":{},"country":"SK","offerId":"00f98754-3aa4-422c-a620-d7f3e9f25c25","lastUpdate":"2026-04-19T15:50:59.326"},{"id":"61ea1ad4-203c-4e41-b549-3e52e6af50fa","productSource":"OFFERS_GRID","type":"FreeText","title":"Kabanosy","brand":"Pikok","quantity":1,"isChecked":false,"images":{},"country":"SK","offerId":"a9feb29e-2cd6-49ed-b8ee-327cf1e52685","lastUpdate":"2026-04-19T15:50:55.144"},{"id":"23b4028f-bc4e-46bb-a2d3-9a5a32ce35b4","productSource":"SHOPPINGLIST_SEARCH","type":"FreeText","title":"Dupla csokis parna","quantity":1,"isChecked":false,"images":{},"country":"HU","lastUpdate":"2026-04-19T15:51:33.275"}]}'
-            #self.shoppinglist = json.loads(self.shoppinglist)
             items = self.shoppinglist['items']
             for item in items:
-                # TODO add checkbutton x
-                # TODO add entry x
-                # TODO add save button x
-                # TODO add delete button x
-                # TODO add shopping list getter in lidlplus-api
-                # TODO add save functionality x
-                # TODO add create functionality x
                 itembox = Gtk.CenterBox()
                 self.displaybox.append(itembox)
 
