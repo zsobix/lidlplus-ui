@@ -8,6 +8,7 @@ import time
 import qrcode
 import webbrowser
 import datetime
+import uuid
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -53,7 +54,16 @@ css_provider.load_from_string("""
 }
 .description {
     text-align: center;
-}""")
+}
+.shoppinglist {
+    margin: 15px;
+}
+
+.entry {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+""")
 Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 class MainWindow(Gtk.ApplicationWindow):
@@ -73,14 +83,22 @@ class MainWindow(Gtk.ApplicationWindow):
         # Setup hamburger menu
         action = Gio.SimpleAction.new("coupons", None)
         action.connect("activate", self.coupons)
+
         home = Gio.SimpleAction.new("home", None)
         home.connect("activate", self.home)
+
         offers = Gio.SimpleAction.new("offers", None)
         offers.connect("activate", self.offers)
+
         brochures = Gio.SimpleAction.new("brochures", None)
         brochures.connect("activate", self.brochures)
+
         settings = Gio.SimpleAction.new("settings", None)
         settings.connect("activate", self.settings)
+
+        shoppinglist = Gio.SimpleAction.new("shoppinglist", None)
+        shoppinglist.connect("activate", self.shopping_list)
+
         logout = Gio.SimpleAction.new("logout", None)
         logout.connect("activate", self.logout)
 
@@ -89,6 +107,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.add_action(offers)
         self.add_action(brochures)
         self.add_action(settings)
+        self.add_action(shoppinglist)
         self.add_action(logout)
 
         menu = Gio.Menu.new()
@@ -98,6 +117,7 @@ class MainWindow(Gtk.ApplicationWindow):
         menu.append("Offers", "win.offers")
         menu.append("Brochures", "win.brochures")
         menu.append("Settings", "win.settings")
+        menu.append("Shopping List", "win.shoppinglist")
         menu.append("Logout", "win.logout")
 
         self.popover = Gtk.PopoverMenu()
@@ -682,7 +702,214 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.label.set_markup('<span size="larger" weight="bold">Successfully redeemed!</span>')
                     time.sleep(1)
                     self.coupons()
-                            
+    # TODO shopping list
+
+    def shopping_list(self, a="", b="", c="", d=""):
+        # outline
+        # get lists: https://shopping-list.lidlplus.com/api/v4/lists method: GET
+        # auth: token, storeid, region
+        # 
+        # get/patch list content: https://shopping-list.lidlplus.com/api/v4/lists/{list_id} method: PATCH
+        # auth: token, storeid, region
+        # needed: include request body json: {"items": [],"list": {"itemIds": [],"deletedItems": []}} 
+        # 
+        # if already have list, on addition json: {"items":[{"type":"FreeText","title":"Dupla csokis parna","quantity":1,"isChecked":false,"id":"23b4028f-bc4e-46bb-a2d3-9a5a32ce35b4","country":"HU","lastUpdate":"2026-04-19T15:51:33.275886","productSource":"SHOPPINGLIST_SEARCH"}],"list":{"itemIds":["94549666-1129-4c8c-861a-53ae13eb3ba8","61ea1ad4-203c-4e41-b549-3e52e6af50fa","23b4028f-bc4e-46bb-a2d3-9a5a32ce35b4"],"deletedItems":[]}}
+        # user-agent: ktor-client ?????
+        if self.logged_in:
+            self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.set_child(self.displaybox)
+            self.label = Gtk.Label()
+            self.label.set_css_classes(["text"])
+            self.displaybox.append(self.label)
+            self.label.set_markup('<span size="larger" weight="bold">Shopping List</span>')    
+
+            self.shoppinglistid = self.lidl.shoppinglists(self.store)['lists'][0]['id'] # automatically selects first shopping list
+            #body = {"items": [],"list": {"itemIds": [],"deletedItems": []}}
+            self.shoppinglist = self.lidl.shoppinglist(self.shoppinglistid, self.store)
+            #self.shoppinglist = '{"items":[{"id":"94549666-1129-4c8c-861a-53ae13eb3ba8","productSource":"OFFERS_GRID","type":"FreeText","title":"Ban\u00e1ny Retro","brand":"Orion","quantity":1,"isChecked":true,"images":{},"country":"SK","offerId":"00f98754-3aa4-422c-a620-d7f3e9f25c25","lastUpdate":"2026-04-19T15:50:59.326"},{"id":"61ea1ad4-203c-4e41-b549-3e52e6af50fa","productSource":"OFFERS_GRID","type":"FreeText","title":"Kabanosy","brand":"Pikok","quantity":1,"isChecked":false,"images":{},"country":"SK","offerId":"a9feb29e-2cd6-49ed-b8ee-327cf1e52685","lastUpdate":"2026-04-19T15:50:55.144"},{"id":"23b4028f-bc4e-46bb-a2d3-9a5a32ce35b4","productSource":"SHOPPINGLIST_SEARCH","type":"FreeText","title":"Dupla csokis parna","quantity":1,"isChecked":false,"images":{},"country":"HU","lastUpdate":"2026-04-19T15:51:33.275"}]}'
+            #self.shoppinglist = json.loads(self.shoppinglist)
+            items = self.shoppinglist['items']
+            for item in items:
+                # TODO add checkbutton x
+                # TODO add entry x
+                # TODO add save button x
+                # TODO add delete button x
+                # TODO add shopping list getter in lidlplus-api
+                # TODO add save functionality x
+                # TODO add create functionality x
+                itembox = Gtk.CenterBox()
+                self.displaybox.append(itembox)
+
+                checkbox = Gtk.CheckButton()
+                checkbox.set_css_classes(['shoppinglist'])
+                if item['isChecked'] == True:
+                    checkbox.set_active(True)
+                checkbox.connect("toggled", self.save_shoppinglist)
+                itembox.set_start_widget(checkbox)
+
+                title = Gtk.Label()
+                title.set_markup(f'<span size="large">{item['title']}</span><span size="1%">div{item}</span>')
+                title.set_css_classes(['shoppinglist'])
+                itembox.set_center_widget(title)
+
+                closebutton = Gtk.Button(label="delete")
+                closebutton.connect("clicked", self.delete_shoppinglist_item)
+                closebutton.set_css_classes(['shoppinglist'])
+                itembox.set_end_widget(closebutton)
+
+                closebuttonlabel = Gtk.Label()
+                closebuttonlabel.set_markup('<span size="large">Delete</span>')
+                closebutton.set_child(closebuttonlabel)
+            # new item
+            itembox = Gtk.CenterBox()
+            self.displaybox.append(itembox)
+
+            entry = Gtk.Entry()
+            entry.set_css_classes(['entry'])
+            itembox.set_center_widget(entry)
+
+            createbutton = Gtk.Button(label="add")
+            createbutton.connect("clicked", self.create_shoppinglist_item)
+            createbutton.set_css_classes(['shoppinglist'])
+            itembox.set_end_widget(createbutton)
+
+            createbuttonlabel = Gtk.Label()
+            createbuttonlabel.set_markup('<span size="large">Add</span>')
+            createbutton.set_child(createbuttonlabel)
+
+    def save_shoppinglist(self, action):
+        itembox = action.get_parent()
+        title = itembox.get_first_child().get_next_sibling()
+        title = title.get_text()
+
+        data = title.split('div')[1]
+        data = data.replace("'", '"')
+        data = data.replace("True", "true")
+        data = data.replace("False", "false")
+        data = json.loads(data)
+
+        data['isChecked'] = action.get_active()
+
+        items = self.shoppinglist['items']
+
+        ids = []
+        for item in items:
+            ids.append(item['id'])
+        body = {"items":[data], "list":{"itemIds": ids, "deletedItems": []}}
+        print(body)
+        self.lidl.shoppinglist(self.shoppinglistid, self.store, body)
+
+    def delete_shoppinglist_item(self, action):
+        itembox = action.get_parent()
+        title = itembox.get_first_child().get_next_sibling()
+        title = title.get_text()
+
+        data = title.split('div')[1]
+        data = data.replace("'", '"')
+        data = data.replace("True", "true")
+        data = data.replace("False", "false")
+        print(data)
+        data = json.loads(data)
+        print(data)
+        print(self.shoppinglist)
+        
+        items = self.shoppinglist['items']
+
+        ids = []
+        for item in items:
+            if item["id"] != data["id"]:
+                ids.append(item["id"])
+        body = {"items":[], "list":{"itemIds": ids, "deletedItems": [{"itemId": data['id'],"lastUpdate":datetime.datetime.now().isoformat()}]}}
+        print(body)
+        self.lidl.shoppinglist(self.shoppinglistid, self.store, body)
+        itembox.set_start_widget(None)
+        itembox.set_center_widget(None)
+        itembox.set_end_widget(None)
+
+    def create_shoppinglist_item(self, action):
+        itembox = action.get_parent()
+        entry = itembox.get_first_child()
+        entry = entry.get_text()
+        itemuuid = str(uuid.uuid4())
+        
+        items = self.shoppinglist['items']
+
+        ids = []
+        for item in items:
+            ids.append(item["id"])
+        ids.append(itemuuid)
+        
+        item = {
+                "type": "FreeText",
+                "title": entry,
+                "quantity": 1,
+                "isChecked": False,
+                "id": itemuuid,
+                "country": self.country,
+                "lastUpdate": datetime.datetime.now().isoformat(),
+                "productSource": "SHOPPINGLIST_SEARCH"
+            }
+
+        body = {"items":[
+            item
+        ],
+        "list": {
+            "itemIds": ids,
+            "deletedItems": []
+        }
+        }
+
+        print(body)
+        self.lidl.shoppinglist(self.shoppinglistid, self.store, body)
+        itembox.set_start_widget(None)
+        itembox.set_center_widget(None)
+        itembox.set_end_widget(None)
+
+
+
+        itembox = Gtk.CenterBox()
+        self.displaybox.append(itembox)
+
+        checkbox = Gtk.CheckButton()
+        checkbox.set_css_classes(['shoppinglist'])
+        if item['isChecked'] == True:
+            checkbox.set_active(True)
+        checkbox.connect("toggled", self.save_shoppinglist)
+        itembox.set_start_widget(checkbox)
+
+        title = Gtk.Label()
+        title.set_markup(f'<span size="large">{entry}</span><span size="1%">div{item}</span>')
+        title.set_css_classes(['shoppinglist'])
+        itembox.set_center_widget(title)
+
+        closebutton = Gtk.Button(label="delete")
+        closebutton.connect("clicked", self.delete_shoppinglist_item)
+        closebutton.set_css_classes(['shoppinglist'])
+        itembox.set_end_widget(closebutton)
+
+        closebuttonlabel = Gtk.Label()
+        closebuttonlabel.set_markup('<span size="large">Delete</span>')
+        closebutton.set_child(closebuttonlabel)
+        
+
+
+        itembox = Gtk.CenterBox()
+        self.displaybox.append(itembox)
+
+        entry = Gtk.Entry()
+        entry.set_css_classes(['entry'])
+        itembox.set_center_widget(entry)
+
+        createbutton = Gtk.Button(label="add")
+        createbutton.connect("clicked", self.create_shoppinglist_item)
+        createbutton.set_css_classes(['shoppinglist'])
+        itembox.set_end_widget(createbutton)
+
+        createbuttonlabel = Gtk.Label()
+        createbuttonlabel.set_markup('<span size="large">Add</span>')
+        createbutton.set_child(createbuttonlabel)
+        
+
 class MyApp(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
