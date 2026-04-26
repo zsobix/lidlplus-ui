@@ -1,9 +1,9 @@
 import os
-from .ui import MyApp
 import distro
 
 def lidl_plus_run():
     try:
+        from .ui import MyApp
         import gi
         gi.require_version('Gtk', '4.0')
         gi.require_version('Adw', '1')
@@ -40,6 +40,7 @@ def lidl_plus_run():
             case "macos":
                 print("You need to install https://brew.sh and run 'brew install pygobject3 gtk4 libadwaita'")
                 exit()
+        from .ui import MyApp
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:

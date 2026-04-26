@@ -777,13 +777,22 @@ class MainWindow(Gtk.ApplicationWindow):
         data = json.loads(data)
 
         data['isChecked'] = action.get_active()
+        data['lastUpdate'] = datetime.datetime.now().isoformat()
 
         items = self.shoppinglist['items']
 
         ids = []
         for item in items:
             ids.append(item['id'])
-        body = {"items":[data], "list":{"itemIds": ids, "deletedItems": []}}
+        body = {
+                "items":[
+                        data
+                ], 
+                "list":{
+                    "itemIds": ids, 
+                    "deletedItems": []
+                    }
+                }
         print(body)
         self.lidl.shoppinglist(self.shoppinglistid, self.store, body)
 
@@ -906,3 +915,7 @@ class MyApp(Adw.Application):
     def on_activate(self, app):
         self.win = MainWindow(application=app)
         self.win.present()
+
+if __name__ == "__main__":
+    app = MyApp(application_id="xyz.zsobix.lidlplusui")
+    app.run()
