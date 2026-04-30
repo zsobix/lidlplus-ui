@@ -9,6 +9,7 @@ import qrcode
 import webbrowser
 import datetime
 import uuid
+import threading
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -62,6 +63,16 @@ css_provider.load_from_string("""
 .entry {
     margin-top: 15px;
     margin-bottom: 15px;
+}
+
+.centerbox {
+    width: 100vw;
+    height: 100vh;
+}
+
+.couponstext {
+    margin: 5px;
+    width: 0;
 }
 """)
 Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
@@ -191,10 +202,9 @@ class MainWindow(Gtk.ApplicationWindow):
                 expirydate = expirydate - today
                 expirydate = expirydate.days
                 name = Gtk.Label()
-                name.set_markup(f'<span size="1%">{coupon["id"]}div{coupon["isActivated"]}div{expirydate}div{coupon["image"]["url"]}div</span><span size="larger">{coupon["title"]}\n</span><span>{coupon["discount"]["title"]}, {coupon["discount"]["description"]}</span>')
-                name.set_css_classes(["text"])
+                name.set_markup(f'<span size="1%">{coupon["id"]}div{coupon["isActivated"]}div{expirydate}div{coupon["image"]["url"]}div</span><span size="larger">{coupon["title"]}\n</span><span>{coupon["discount"]["title"]}, {coupon["discount"]["description"]}</span>'.replace('&', 'AND'))
+                name.set_css_classes(["couponstext"])
                 box2.append(name)
-
                 box3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
                 centerbox.set_end_widget(box3)
 
@@ -390,6 +400,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.centerbox = Gtk.CenterBox()
             self.set_child(self.centerbox)
             self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.displaybox.set_css_classes(['centerbox'])
             self.centerbox.set_center_widget(self.displaybox)
             #if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
             #    self.label.set_markup('<span size="larger" weight="bold">Home</span>')
@@ -421,6 +432,10 @@ class MainWindow(Gtk.ApplicationWindow):
             qrimg = Gtk.Picture().new_for_pixbuf(pixbuf)
             qrimg.set_css_classes(["picture"])
             qrbox.append(qrimg)
+
+            qrtitle = Gtk.Label()
+            qrtitle.set_markup(f'<span size="small">Loyalty ID QR Code</span>')
+            qrbox.append(qrtitle)
 
             # buttons
             buttonsbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -462,6 +477,15 @@ class MainWindow(Gtk.ApplicationWindow):
             settingslabel.set_markup('<span size="x-large">                           Settings                            </span>')
             settingsbutton.set_child(settingslabel)
             
+            listbutton = Gtk.Button(label="shoppinglist")
+            listbutton.set_css_classes(['button'])
+            listbutton.connect("clicked", self.shopping_list)
+            buttonsbox.append(listbutton)
+
+            listlabel = Gtk.Label()
+            listlabel.set_markup('<span size="x-large">                           Shopping List                            </span>')
+            listbutton.set_child(listlabel)
+
 
             logoutbutton = Gtk.Button(label="logout")
             logoutbutton.set_css_classes(['button'])
@@ -663,6 +687,97 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.country != None:
             pass
 
+    #def purchaseLottery(self, action):
+    #    if self.logged_in:
+    #        self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    #        self.set_child(self.displaybox)
+    #        self.label = Gtk.Label()
+    #        self.label.set_css_classes(["text"])
+    #        self.displaybox.append(self.label)
+    #        if len(self.lidl.home(self.store)["purchaseLottery"]) == 0:
+    #            self.label.set_markup('<span size="larger" weight="bold">There are no scratch coupons to redeem</span>')
+    #            backbutton = Gtk.Button(label="back")
+    #            backbutton.connect("clicked", self.home)
+    #            backbutton.set_css_classes(["button"])
+    #            self.displaybox.append(backbutton)
+    #            buttonlabel = Gtk.Label()
+    #            buttonlabel.set_markup('<span size="larger" weight="bold">Back</span>')
+    #            backbutton.set_child(buttonlabel)
+    #        else:
+    #            self.label.set_markup('<span size="larger" weight="bold">Redeeming</span>')
+    #            # here comes the fun
+    #            coupon_id = self.lidl.home(self.store)["purchaseLottery"][0]["id"]
+    #            details = self.lidl.purchaseLottery_details(coupon_id=coupon_id)
+    #            if self.lidl.redeem_purchaseLottery(coupon_id=coupon_id):
+    #                try:
+    #                    for i in range(0,5):
+    #                        status = self.lidl.purchaseLottery_status(coupon_id=coupon_id)
+    #                        if status.startswith("0") or status == "":
+    #                            break
+    #                        else:
+    #                            time.sleep(0.5)
+    #                    if status.startswith("0") or status == "":
+    #                        pass
+    #                    else:
+    #                        raise Exception("redeem error")
+    #                except:
+    #                    self.label.set_markup(f"<span size='larger' weight='bold'>Couldn't redeem</span>")
+    #                    self.home()
+    #                self.label.set_markup('<span size="larger" weight="bold">Successfully redeemed!</span>')
+    #                time.sleep(1)
+    #                self.coupons()
+    
+    def purchaseLotteryWaiter(self, uiWindow, coupon_id):
+        print(coupon_id)
+        try:
+            for i in range(0,20):
+                status = self.lidl.purchaseLottery_status(coupon_id=coupon_id)
+                if status.startswith("0") or status == "":
+                    break
+                else:
+                    time.sleep(0.5)
+            if status.startswith("0") or status == "":
+                if status.startswith("0"):
+                    coupons = self.lidl.coupons(self.store)["sections"][0]["promotions"]
+                    for found in coupons:
+                        if found["id"] == status:
+                            coupon = found
+                    today = datetime.datetime.now(datetime.timezone.utc)
+                    try:
+                        expirydate = datetime.datetime.strptime(coupon["validity"]["end"], "%Y-%m-%dT%H:%M:%S.%f%z")
+                    except:
+                        expirydate = datetime.datetime.strptime(f"{coupon["validity"]["end"]}+0100", "%Y-%m-%dT%H:%M:%SZ%z")
+                    expirydate = expirydate - today
+                    expirydate = expirydate.days
+                    img = Gio.File.new_for_uri(coupon["image"]["url"])
+                    img2 = GdkPixbuf.Pixbuf.new_from_stream(img.read(cancellable=None))
+                    image = Gtk.Picture().new_for_pixbuf(img2)
+
+                    image.set_css_classes(["picture"])
+                    self.displaybox.append(image)
+
+                    title = Gtk.Label()
+                    title.set_markup(f'<span size="200%">{coupon["title"]}\n{coupon["discount"]["title"]}, {coupon["discount"]["description"]}\n {expirydate} day(s) left</span>')
+                    title.set_css_classes(["description"])
+                    self.displaybox.append(title)
+                else:
+                    sadge = Gtk.Label()
+                    sadge.set_markup(f"<span size='large' weight='bold'>You haven't won anything....</span>")
+                    self.displaybox.append(sadge)
+            else:
+                raise Exception("redeem error")
+        except:
+            self.label.set_markup(f"<span size='larger' weight='bold'>Couldn't redeem</span>")
+            self.home()
+        self.label.set_markup('<span size="larger" weight="bold">Successfully redeemed!</span>')
+        self.displaybox.remove(self.spinner)
+        backbutton = Gtk.Button(label="back")
+        backbutton.connect("clicked", self.home)
+        backbutton.set_css_classes(["button"])
+        self.displaybox.append(backbutton)
+        buttonlabel = Gtk.Label()
+        buttonlabel.set_markup('<span size="larger" weight="bold">Back</span>')
+        backbutton.set_child(buttonlabel)
     def purchaseLottery(self, action):
         if self.logged_in:
             self.displaybox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -680,29 +795,15 @@ class MainWindow(Gtk.ApplicationWindow):
                 buttonlabel.set_markup('<span size="larger" weight="bold">Back</span>')
                 backbutton.set_child(buttonlabel)
             else:
-                self.label.set_markup('<span size="larger" weight="bold">Redeeming</span>')
-                # here comes the fun
                 coupon_id = self.lidl.home(self.store)["purchaseLottery"][0]["id"]
                 details = self.lidl.purchaseLottery_details(coupon_id=coupon_id)
                 if self.lidl.redeem_purchaseLottery(coupon_id=coupon_id):
-                    try:
-                        for i in range(0,5):
-                            status = self.lidl.purchaseLottery_status(coupon_id=coupon_id)
-                            if status.startswith("0") or status == "":
-                                break
-                            else:
-                                time.sleep(0.5)
-                        if status.startswith("0") or status == "":
-                            pass
-                        else:
-                            raise Exception("redeem error")
-                    except:
-                        self.label.set_markup(f"<span size='larger' weight='bold'>Couldn't redeem</span>")
-                        self.home()
-                    self.label.set_markup('<span size="larger" weight="bold">Successfully redeemed!</span>')
-                    time.sleep(1)
-                    self.coupons()
-    # TODO shopping list
+                    t1 = threading.Thread(target=self.purchaseLotteryWaiter, args=(self,coupon_id,))
+                    t1.start()
+                    self.spinner = Gtk.Spinner()
+                    self.displaybox.append(self.spinner)
+                    self.spinner.start()
+                    self.label.set_markup('<span size="larger" weight="bold">Redeeming....</span>')
 
     def shopping_list(self, a="", b="", c="", d=""):
         # outline
